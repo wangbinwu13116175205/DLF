@@ -2,7 +2,7 @@
 
 # TODO
 
-The clean code will be released around mid-May.
+Further pobulish the code.
 
 # Introduction
 
