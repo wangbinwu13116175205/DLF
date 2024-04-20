@@ -320,8 +320,6 @@ class DataLoader(object):
 
 
     def write_to_shared_array(self, x, y, idx_ind, start_idx, end_idx):
-        print(self.data.shape)
-        print(start_idx, end_idx)
         for i in range(start_idx, end_idx):
             x[i] = self.data[idx_ind[i] + self.x_offsets, :, :]
             y[i] = self.data[idx_ind[i] + self.y_offsets, :, :1]
@@ -417,18 +415,12 @@ class DataLoader_self(object):
         idx=np.concatenate([idx1,idx2,idx3])
         self.idx = idx
         
-    def write_to_shared_array(self, x, y, idx_ind, start_idx, end_idx):
-        print('-------------------------------------')
-        print(idx_ind, start_idx, end_idx)
-        print('-------------------------------------')
+    def write_to_shared_array(self, x, y, idx_ind, start_idx, end_idx):-')
         K=int(idx_ind*0.5)
         random_integers = np.random.choice(np.arange(start_idx,  end_idx + 1), size=K, replace=False)
         for i in range(start_idx, end_idx):
             x[i] = self.data[idx_ind[i] + self.x_offsets, :, :]
             y[i] = self.data[idx_ind[i] + self.y_offsets, :, :1]
-        print('===============================')
-        print(x.shape,y.shape)
-
     def get_idx(self):
         return self.idx
 
@@ -798,7 +790,6 @@ def load_dataset(args, logger=None,subgraph_detect=False):
         dataloader[cat + '_loader'] = DataLoader13(ptr['data'][:,adj_idx,:3], idx_list[cat], \
                                                         args.seq_len, args.horizon, args.bs, logger)
         dataloader[cat+'_adj']=supports
-    print(dataloader['train_adj'][0].shape,dataloader['val_adj'][0].shape,dataloader['test_adj'][0].shape)
     scaler = StandardScaler(mean=ptr['mean'], std=ptr['std'])
     return dataloader, scaler
 
@@ -959,28 +950,7 @@ def process_adj(args):
         adj2=adj1[:,res_list]
         path='data/adj/'+str(i)+'.npz'
         np.savez(path,adj=adj2,idx=res_list)
-def online_select_data_beifen(args):
-    month_old=int(args.month-0.5)
-    month_new=int(args.month)
-    node_list = list()
-    old_node_size = np.load(osp.join(args.graph_path, str(month_old)+".npz"))['adj'].shape[0]
-    new_node_size = np.load(osp.join(args.graph_path, str(month_new)+".npz"))['adj'].shape[0]
-    vars(args)["graph_size"]= new_node_size
-    print('The graph size is ', new_node_size)
-    if new_node_size>old_node_size:
 
-        node_list.extend(list(range(old_node_size,new_node_size)))       #new nodes
-    if  args.detect:  
-        vars(args)["topk"] = int(0.2*new_node_size)              
-        evolution_node_list=select_evol_nodes(args)
-        node_list.extend(list(evolution_node_list))                        
-        node_list = list(set(node_list))
-    if len(node_list) > int(0.2*args.graph_size):
-        node_list = random.sample(node_list, int(0.1*args.graph_size))    
-    node_list = list(set(node_list))
-    if len(node_list) != 0 :
-        subgraph = get_2hop_subgraph(adj_matrix, nodes)
-    return subgraph
 def get_n_hop_subgraph2(adj_matrix, nodes, n):
     graph = nx.from_numpy_array(adj_matrix)
     subgraph_nodes = set(nodes)
@@ -1031,10 +1001,9 @@ def get_feature(data, graph, args, model, adj):
         data = data.to(args.device, non_blocking=True)
         feature, _ = to_dense_batch(model.feature(X, adj), batch=args.batch_size)#B*N,T,D
         node_size = feature.size()[1]
-        # print("before permute:", feature.size())
+
         feature = feature.permute(1,0,2)
 
-        # [N, T', feature_dim]
         return feature.cpu().detach().numpy()
 
 def get_adj(month, args):
@@ -1108,23 +1077,8 @@ def select_evol_nodes(args,model=None):
         pass        
 
 
-if __name__== "__main__" :
-    parser = argparse.ArgumentParser(formatter_class = argparse.RawTextHelpFormatter)
-    parser.add_argument("--month", type = int, default = 4)
-    parser.add_argument("--data_year", type = str, default = '2018')
-    parser.add_argument("--last_data_point", type = int, default = 0)
-    parser.add_argument("--graph_path", type = str, default = '/home/wbw/ICLR/DLF/data/adj')
-    parser.add_argument("--conf", type = str, default = '/home/wbw/ICLR/DLF/DLF.json')
-    parser.add_argument("--adj_type", type = str, default = 'doubletransition')
-    args = parser.parse_args()
-
-    init(args)
-    for i in np.arange(4,12,0.5):
-        vars(args)["month"]=vars(args)["month"]+0.5
-        online_select_data(args)
 
 
 
-        
-#python  main_meisangeyuenewmode.py --device cuda:4 --dataset SD --years 2019 --model_name stgcn --seed 3208 --bs 64
+
 
