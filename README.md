@@ -14,3 +14,17 @@ Please send an email to wbw1995@mail.ustc.edu.cn for data.
 # Training 
 
 python main.py --device cuda:4--model_name DLF --seed 3028 --bs 64
+
+# Citation
+
+If you find it helpful or use the data, please cite it:
+
+@inproceedings{wang2024towards,
+  title={Towards Dynamic Spatial-Temporal Graph Learning: A Decoupled Perspective},
+  author={Wang, Binwu and Wang, Pengkun and Zhang, Yudong and Wang, Xu and Zhou, Zhengyang and Bai, Lei and Wang, Yang},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={38},
+  number={8},
+  pages={9089--9097},
+  year={2024}
+}
