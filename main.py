@@ -17,11 +17,11 @@ import torch.nn.functional as func
 from torch import optim
 import torch.multiprocessing as mp
 import ct
-from model import GWNET
-from metrics import masked_mae
-from args import get_public_config
-from engine import BaseEngine
-from dataloader import load_dataset,self_load_dataset
+from src.model import DSTG
+from utils.metrics import masked_mae
+from utils.args import get_public_config
+from utils.engine import BaseEngine
+from utils.dataloader import load_dataset
 
 
 pin_memory = True
@@ -43,7 +43,7 @@ def get_config():
     parser.add_argument('--end_dim', type=int, default=256)
 
     parser.add_argument('--lrate', type=float, default=1e-3)
-    parser.add_argument('--max_epoch', type=int, default=100)
+    parser.add_argument('--max_epoch', type=int, default=1)
     parser.add_argument('--wdecay', type=float, default=1e-4)
     parser.add_argument('--dropout', type=float, default=0.3)
     parser.add_argument('--result', type=str, default='1')
@@ -67,7 +67,7 @@ def init(args):
     ct.mkdirs(args.path)
     del info
 def get_model(args):
-    model = GWNET(input_dim=args.input_dim,
+    model = DSTG(input_dim=args.input_dim,
                     output_dim=args.output_dim,
                     dropout=args.dropout,
                     hidden_channels=args.hidden_channels,
@@ -132,7 +132,7 @@ def main(args):
                             optimizer=optimizer,
                             scheduler=scheduler,
                             clip_grad_value=args.clip_grad_value,
-                            max_epochs=args.max_epochs,
+                            max_epochs=1,#args.max_epochs,
                             patience=args.patience,
                             log_dir=args.save_model_path,
                             logger=args.logger,
@@ -141,7 +141,7 @@ def main(args):
                     engine.update_adj(dataloader['train_adj'],dataloader['val_adj'],dataloader['test_adj'])
                     model= get_model(args) 
                     optimizer = torch.optim.Adam(model.parameters(), lr=args.lrate, weight_decay=args.wdecay)
-                    if args.self_or_learning:
+                    if 0:
                         engine.load_self_model(args.save_model_path,model,optimizer)
                     engine.update_dataloader(dataloader, scaler)
                     engine.down_prediction()
