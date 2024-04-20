@@ -415,12 +415,14 @@ class DataLoader_self(object):
         idx=np.concatenate([idx1,idx2,idx3])
         self.idx = idx
         
-    def write_to_shared_array(self, x, y, idx_ind, start_idx, end_idx):-')
+    def write_to_shared_array(self, x, y, idx_ind, start_idx, end_idx):
+
         K=int(idx_ind*0.5)
         random_integers = np.random.choice(np.arange(start_idx,  end_idx + 1), size=K, replace=False)
         for i in range(start_idx, end_idx):
             x[i] = self.data[idx_ind[i] + self.x_offsets, :, :]
             y[i] = self.data[idx_ind[i] + self.y_offsets, :, :1]
+
     def get_idx(self):
         return self.idx
 
@@ -554,18 +556,7 @@ def process_data_idx(data_path, args, logger=None):
         idx_list=get_idx_retrain(args)
     if args.mode=='online':
         idx_list=get_idx_online(args)
-def gei_index_beifen(month):
-    train_low=day_low*288
-    train_high=day_high*288
 
-    val_gap=int(15*288*0.5)
-    test_gap=15*288-val_gap
-    train_low=day_low*288
-    train_high=day_high*288
-    val_low=train_high
-    val_high=val_low+val_gap
-    test_low=val_high
-    test_high=test_low+test_gap
 def get_index(month):
     if (month-1)%3==0:
         day_gap=90
@@ -584,21 +575,6 @@ def get_index(month):
 
     test_low=val_high
     test_high=test_low+15*288
-    return np.array([i for i in range(int(train_low),int(train_high))]),np.array([i for i in range(int(val_low),int(val_high))]),np.array([i for i in range(int(test_low),int(test_high))]) 
-def get_index_stgcn(month):
-    day_gap=90
-    day_high=(month-1)*30
-    day_low=day_high-day_gap
-    train_low=day_low*288
-    train_high=day_high*288
-    val_gap=int(15*288*0.5)
-    test_gap=15*288-val_gap
-    train_low=day_low*288
-    train_high=day_high*288
-    val_low=train_high
-    val_high=val_low+val_gap
-    test_low=val_high
-    test_high=test_low+test_gap
     return np.array([i for i in range(int(train_low),int(train_high))]),np.array([i for i in range(int(val_low),int(val_high))]),np.array([i for i in range(int(test_low),int(test_high))]) 
 
 def get_adj_idx(month):
@@ -793,14 +769,6 @@ def load_dataset(args, logger=None,subgraph_detect=False):
     scaler = StandardScaler(mean=ptr['mean'], std=ptr['std'])
     return dataloader, scaler
 
-def get_data_detect(month,args):
-    ptr = np.load(os.path.join(args.data_path, '2018/his.npz'))
-    path='data/'+args.mode+'_idx/'
-    path=os.path.join(path,str(args.month)+'.npz')
-    idx_list=np.load(path)
-    idx_list1=list(idx_list['train'])+list(idx_list['val'])
-    idx=np.array(idx_list1)
-    return ptr['data'][:,idx,:3]
 def get_data_detect_weak(month,args):
     ptr = np.load(os.path.join(args.data_path, '2018/his.npz'))
     path='data/'+args.mode+'_idx/'
@@ -850,36 +818,10 @@ def get_idx_retrain(args):
     path='data/'+args.mode+'_idx/'
     path=os.path.join(path,str(args.month)+'.npz')
     np.savez(path,train=idx_list['train'],test=idx_list['test'],val=idx_list['val'])
-    #np.save(path,idx_list)
-    #return idx_list
+
 
 def get_idx_online(args):
     idx_list={}
-    
-    if args.learning=='self':
-        sum_day=0
-        sum_last_day=0
-        month=math.trunc(args.month)
-        if args.month==4:
-            for i in range(1,4):
-                sum_day=sum_day+calendar.monthrange(int(args.data_year),i)[1]
-        else:
-            for i in range(month-3,month):
-                sum_day=sum_day+calendar.monthrange(int(args.data_year),i)[1]
-            for i in range(1,month-3):
-                sum_last_day=sum_last_day+calendar.monthrange(int(args.data_year),i)[1]
-        train_low=sum_last_day*96
-        train_length=int(sum_day*96*0.9)
-        train_high=train_low+train_length
-        idx_list['train']=np.array([i for i in range(train_low,train_high)])
-        val_low=train_high
-        val_length=sum_day*96-train_length
-        val_high=train_high+val_length
-        idx_list['val'] =np.array([i for i in range(val_low,val_high)])
-        test_low=val_high
-        test_length=15*96
-        test_high=test_low+test_length
-        idx_list['test'] =np.array([i for i in range(test_low,test_high)])
 
     if args.learning=='online':
         month_int=math.trunc(args.month)
@@ -893,8 +835,6 @@ def get_idx_online(args):
         train_high=train_low+train_length
         idx_list['train']=np.array([i for i in range(train_low,train_high)])
        
-
-
         val_length=sum_length-train_length
         val_low=train_high
         val_high=val_low+val_length
@@ -942,7 +882,7 @@ def process_adj(args):
         size=len(res_list)
         lst=list(range(0, size)) 
         rand_size=int(size*0.05)
-        rand=random.sample(lst,rand_size)#生成的索引
+        rand=random.sample(lst,rand_size)
         rand.sort(reverse=True)
         for index in rand:
             res_list.pop(index)
@@ -1053,28 +993,14 @@ def evolution_detect_mode2(q,p):
         node_list.append(evolution)
     return node_list
 
-def select_evol_nodes(args,model=None):
-    if args.detect_strategy == 'original':
-        old_data = get_data_detect_weak(args.month-0.5,args).sum(axis=0)#7*288*N
-        new_data = get_data_detect_weak(args.month,args).sum(axis=0)
-        node_size = old_data.shape[-1]
-        score = []
-        for node in range(node_size):
-            score.append(scipy.stats.wasserstein_distance(old_data[:,node], new_data[:,node]))
-        return np.argpartition(np.asarray(score), -args.new_topk)[-args.new_topk:], np.argpartition(np.asarray(score), args.replay_topk)[:args.replay_topk]
-    
-    elif args.detect_strategy == 'feature':
-        model.eval()
-        old_adj = get_adj(args.month-0.5, args)
-        new_adj = get_adj(args.month, args)
-
-        old_data = get_data_detect(args.month-0.5,args)
-        new_data = get_data_detect(args.month,args)
-
-        pre_data = get_feature(pre_data, old_data, args, model, old_adj)
-        cur_data = get_feature(cur_data, new_data, args, model, new_adj)
-        score  = []
-        pass        
+def select_evol_nodes(args):
+    old_data = get_data_detect_weak(args.month-0.5,args).sum(axis=0)
+    new_data = get_data_detect_weak(args.month,args).sum(axis=0)
+    node_size = old_data.shape[-1]
+    score = []
+    for node in range(node_size):
+        score.append(scipy.stats.wasserstein_distance(old_data[:,node], new_data[:,node]))
+    return np.argpartition(np.asarray(score), -args.new_topk)[-args.new_topk:], np.argpartition(np.asarray(score), args.replay_topk)[:args.replay_topk]
 
 
 
