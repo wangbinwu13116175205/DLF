@@ -9,7 +9,7 @@ conda env create -f DLF.yaml
 
 # Data 
 
-Please send an email to wbw1995@mail.ustc.edu.cn for data.
+Please send an email to wbw1995@mail.ustc.edu.cn for data. Unzip it to the data/.
 
 # Training 
 
