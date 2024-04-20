@@ -1,0 +1,44 @@
+{
+    "self_gap":3,
+    "data_year":2018,
+    "raw_data_path": "/home/wbw/ijcai/data/district3F11T17/finaldata/",
+    "save_data_path": "/home/wbw/ijcai/data/district3F11T17/FastData/",
+    "graph_path": "/home/wbw/ICLR/DLF/data/adj",
+    "model_path": "res/model_record/",
+    "logname": "DLF",
+    "begin_month":4,
+    "end_month":12,
+    "month":5,
+    "mode":"online",
+    "first_month_init":false,
+    "data_path":"/home/wbw/ICLR/LargeST-main/data/sd",
+    "seq_len":12,
+    "horizon":12,
+    "bs":64,
+    "learning_method":"online",
+    "ewc_lambda": 10,
+    "input_dim":3,
+    "output_dim":1,
+    "skip_dim": 256,
+    "end_dim": 256,
+    "fintue_lr":0.01,
+    "hidden_channels": 64,
+    "dilation_channels": 128,
+    "self_or_learning":true,
+    "init":true,
+    
+
+
+
+    "one_day_length":96,
+    "detect_size":0.04,
+    "num_hops":2,
+    "detect":true,
+    "detect_strategy": "original",
+    "in_it":false,
+    "epoch_max":100,
+    "n_hop":3,
+    "lrate":0.001,
+    "adj_type":"normlap"
+    
+}
