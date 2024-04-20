@@ -577,26 +577,6 @@ def get_index(month):
     test_high=test_low+15*288
     return np.array([i for i in range(int(train_low),int(train_high))]),np.array([i for i in range(int(val_low),int(val_high))]),np.array([i for i in range(int(test_low),int(test_high))]) 
 
-def get_adj_idx(month):
-    adj=np.load('/home/wbw/ICLR/DLF/data/original/2023_12_3new_adj.npy')
-    res_adj_len=adj.shape[0]
-    adj_list={}
-    adj_idx={}
-    #data_final=data_our
-    for month1 in range(12,2,-1):
-        res_adj_len=int(res_adj_len*0.95)
-        res_node_list=[i for i in range(res_adj_len)]
-        adj_lin=adj[res_node_list,:]
-        adj_lin=adj_lin[:,res_node_list]
-        adj_list[month1]=adj_lin
-        adj_idx[month1]=res_node_list
-    for i in range(3,12):
-        adj1= adj_list[i]
-        adj2= adj_list[i+1]
-        for a in range(adj1.shape[0]):
-            for b in range(adj1.shape[1],adj2.shape[1]):
-                 adj_list[i+1][a][b]=0
-    return adj_list[month],adj_idx[month]
 
 
 class DataLoader13(object):
@@ -685,7 +665,7 @@ class DataLoader13(object):
 
 
 def self_load_dataset(args, logger=None,subgraph_detect=False):
-    ptr = np.load("/home/wbw/ICLR/DLF/data/original/1402_our_his.npz")
+    ptr = np.load("data/original/1402_our_his.npz")
     #logger.info('Data shape: ' + str(ptr['data'].shape))
     vars(args)["year_length"]=ptr['data'].shape[0]
     dataloader = {}
@@ -696,12 +676,12 @@ def self_load_dataset(args, logger=None,subgraph_detect=False):
     month_new=int(args.month-0.5)
     if subgraph_detect:
             subgraph,node_list=online_select_data(args,month_old,month_new)
-            adj_idx=np.load('/home/wbw/ICLR/DLF/data/adj/'+str(month_new)+'_ouradjidx.npy')
+            adj_idx=np.load('data/adj/'+str(month_new)+'_ouradjidx.npy')
             adj_idx=adj_idx[node_list]
             adj=subgraph
     else:
             adj=np.load(osp.join(args.graph_path, str(month_new)+"_ouradj.npy"))
-            adj_idx=np.load('/home/wbw/ICLR/DLF/data/adj/'+str(month_new)+'_ouradjidx.npy')
+            adj_idx=np.load('data/adj/'+str(month_new)+'_ouradjidx.npy')
     adj_mx = normalize_adj_mx(adj, args.adj_type)
     supports = [torch.tensor(i) for i in adj_mx]
     for cat in ['train']:
@@ -718,7 +698,7 @@ def self_load_dataset(args, logger=None,subgraph_detect=False):
         dataloader[cat+'_adj']=supports
     for cat in ['test']:
         adj=np.load(osp.join(args.graph_path, str(int(args.month))+"_ouradj.npy"))
-        adj_idx=np.load('/home/wbw/ICLR/DLF/data/adj/'+str(int(args.month))+'_ouradjidx.npy')  
+        adj_idx=np.load('data/adj/'+str(int(args.month))+'_ouradjidx.npy')  
         adj_mx = normalize_adj_mx(adj, args.adj_type)
         supports = [torch.tensor(i) for i in adj_mx]
         dataloader[cat + '_loader'] = DataLoader13(ptr['data'][:,adj_idx,:3], idx_list[cat], \
@@ -729,7 +709,7 @@ def self_load_dataset(args, logger=None,subgraph_detect=False):
     return dataloader, scaler
 
 def load_dataset(args, logger=None,subgraph_detect=False):
-    ptr = np.load("/home/wbw/ICLR/DLF/data/original/1402_our_his.npz")
+    ptr = np.load("data/original/1402_our_his.npz")
     #logger.info('Data shape: ' + str(ptr['data'].shape))
     vars(args)["year_length"]=ptr['data'].shape[0]
     dataloader = {}
