@@ -26,6 +26,7 @@
     "dilation_channels": 128,
     "self_or_learning":true,
     "init":true,
+    "self_surlearning":False,
     
 
 
