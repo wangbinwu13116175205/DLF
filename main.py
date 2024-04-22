@@ -141,8 +141,8 @@ def main(args):
                     engine.update_adj(dataloader['train_adj'],dataloader['val_adj'],dataloader['test_adj'])
                     model= get_model(args) 
                     optimizer = torch.optim.Adam(model.parameters(), lr=args.lrate, weight_decay=args.wdecay)
-                    if 0:
-                        engine.load_self_model(args.save_model_path,model,optimizer)
+                    if args.self_surlearning:
+                        engine.load_self_model(args.sur_save_model_path,model,optimizer)
                     engine.update_dataloader(dataloader, scaler)
                     engine.down_prediction()
         else:
