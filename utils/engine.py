@@ -129,7 +129,7 @@ class BaseEngine():
     def updata_adj_list_retrain(self):
         self.adj_list={}
         for month in range(3):
-            adj=np.load('data/adj/'+str(int(self._args.month-1-month))+'_ouradj.npy')
+            adj=np.load(self._args.adj_path+str(int(self._args.month-1-month))+'_ouradj.npy')
             adj_mx = normalize_adj_mx(adj, self._args.adj_type)
             supports = [torch.tensor(i) for i in adj_mx]
             self.adj_list[self._args.month-1-month]=supports 
@@ -314,7 +314,7 @@ class BaseEngine():
         min_loss = np.inf
         #for epoch in range(self._args.epoch_max):
         self.updata_adj_list_retrain()
-        for epoch in range(1):
+        for epoch in range(100):
             t1 = time.time()
             mtrain_loss, mtrain_mape, mtrain_rmse = self.down_prediction_batch()
             t2 = time.time()
@@ -353,7 +353,7 @@ class BaseEngine():
         wait = 0
         min_loss = np.inf
         #for epoch in range(self._args.epoch_max):
-        for epoch in range(1):
+        for epoch in range(100):
             t1 = time.time()
             mtrain_loss, mtrain_mape, mtrain_rmse = self.train_batch()
             t2 = time.time()
