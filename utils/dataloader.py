@@ -39,17 +39,6 @@ def load_adj_from_numpy(numpy_file):
     return np.load(numpy_file)
 
 
-def get_dataset_info(dataset):
-    base_dir = os.getcwd() + '/data/'
-    d = {
-         'CA': [base_dir+'ca', base_dir+'ca/ca_rn_adj.npy', 8600],
-         'GLA': [base_dir+'gla', base_dir+'gla/gla_rn_adj.npy', 3834],
-         'GBA': [base_dir+'gba', base_dir+'gba/gba_rn_adj.npy', 2352],
-         'SD': [base_dir+'sd', base_dir+'sd/sd_rn_adj.npy', 716],
-        }
-    assert dataset in d.keys()
-    return d[dataset]
-
 def calculate_normalized_laplacian(adj_mx):
     adj_mx = sp.coo_matrix(adj_mx)
     d = np.array(adj_mx.sum(1))
@@ -74,8 +63,6 @@ def init(args):
     conf_path = osp.join(args.conf)
     info = ct.load_json_file(conf_path)
     update(vars(args), info)
-    #vars(args)["path"] = osp.join(args.model_path, args.logname+args.time)
-    #ct.mkdirs(args.path)
     del info
 
 def calculate_scaled_laplacian(adj_mx, lambda_max=None, undirected=True):
@@ -665,7 +652,7 @@ class DataLoader13(object):
 
 
 def self_load_dataset(args, logger=None,subgraph_detect=False):
-    ptr = np.load("data/original/1402_our_his.npz")
+    ptr = np.load(args.all_datapath)
     #logger.info('Data shape: ' + str(ptr['data'].shape))
     vars(args)["year_length"]=ptr['data'].shape[0]
     dataloader = {}
@@ -680,7 +667,7 @@ def self_load_dataset(args, logger=None,subgraph_detect=False):
             adj_idx=adj_idx[node_list]
             adj=subgraph
     else:
-            adj=np.load(osp.join(args.graph_path, str(month_new)+"_ouradj.npy"))
+            adj=np.load(osp.join(args.adj_path, str(month_new)+"_ouradj.npy"))
             adj_idx=np.load('data/adj/'+str(month_new)+'_ouradjidx.npy')
     adj_mx = normalize_adj_mx(adj, args.adj_type)
     supports = [torch.tensor(i) for i in adj_mx]
@@ -697,7 +684,7 @@ def self_load_dataset(args, logger=None,subgraph_detect=False):
         logger.info(cat+'Data length: ' + str(len(idx_list[cat])))
         dataloader[cat+'_adj']=supports
     for cat in ['test']:
-        adj=np.load(osp.join(args.graph_path, str(int(args.month))+"_ouradj.npy"))
+        adj=np.load(osp.join(args.adj_path, str(int(args.month))+"_ouradj.npy"))
         adj_idx=np.load('data/adj/'+str(int(args.month))+'_ouradjidx.npy')  
         adj_mx = normalize_adj_mx(adj, args.adj_type)
         supports = [torch.tensor(i) for i in adj_mx]
@@ -709,9 +696,8 @@ def self_load_dataset(args, logger=None,subgraph_detect=False):
     return dataloader, scaler
 
 def load_dataset(args, logger=None,subgraph_detect=False):
-    ptr = np.load("data/original/1402_our_his.npz")
-    #logger.info('Data shape: ' + str(ptr['data'].shape))
-    vars(args)["year_length"]=ptr['data'].shape[0]
+    ptr = np.load(args.all_datapath)
+    print(ptr['data'].shape)
     dataloader = {}
     idx_list={}
     idx_list['train'],idx_list['val'],idx_list['test']=get_index(args.month)
@@ -724,12 +710,12 @@ def load_dataset(args, logger=None,subgraph_detect=False):
         month_old=int(month_per*3+1)
     if subgraph_detect:
             subgraph,node_list=online_select_data(args,month_old,month_new)
-            adj_idx=np.load('data/adj/'+str(month_new)+'_ouradjidx.npy')
+            adj_idx=np.load(args.adj_path+str(month_new)+'_ouradjidx.npy')
             adj_idx=adj_idx[node_list]
             adj=subgraph
     else:
-            adj=np.load(osp.join(args.graph_path, str(month_new)+"_ouradj.npy"))
-            adj_idx=np.load('data/adj/'+str(month_new)+'_ouradjidx.npy')
+            adj=np.load(osp.join(args.adj_path, str(month_new)+"_ouradj.npy"))
+            adj_idx=np.load(args.adj_path+str(month_new)+'_ouradjidx.npy')
     adj_mx = normalize_adj_mx(adj, args.adj_type)
     supports = [torch.tensor(i) for i in adj_mx]
     for cat in ['train','val']:
@@ -739,8 +725,8 @@ def load_dataset(args, logger=None,subgraph_detect=False):
         logger.info(cat+'Data length: ' + str(len(idx_list[cat])))
         dataloader[cat+'_adj']=supports
     for cat in ['test']:
-        adj=np.load(osp.join(args.graph_path, str(int(args.month))+"_ouradj.npy"))
-        adj_idx=np.load('data/adj/'+str(int(args.month))+'_ouradjidx.npy')  
+        adj=np.load(osp.join(args.adj_path, str(int(args.month))+"_ouradj.npy"))
+        adj_idx=np.load(args.adj_path+str(int(args.month))+'_ouradjidx.npy')  
         adj_mx = normalize_adj_mx(adj, args.adj_type)
         supports = [torch.tensor(i) for i in adj_mx]
         dataloader[cat + '_loader'] = DataLoader13(ptr['data'][:,adj_idx,:3], idx_list[cat], \
@@ -750,15 +736,15 @@ def load_dataset(args, logger=None,subgraph_detect=False):
     return dataloader, scaler
 
 def get_data_detect_weak(month,args):
-    ptr = np.load(os.path.join(args.data_path, '2018/his.npz'))
-    path='data/'+args.mode+'_idx/'
+    ptr = np.load(args.all_datapath)
+    path='data/'+args.mode+'_idx/'#要改
     #month=int(month)
     path=os.path.join(path,str(month)+'.npz')
     idx_list=np.load(path)
     idx_list1=list(idx_list['train'])+list(idx_list['val'])
     idx=np.array(idx_list1)
     month_int=int(month-0.5)
-    path_adj='data/adj/'+str(month_int)+'.npz'
+    path_adj='data/adj/'+str(month_int)+'.npz' #要改
     adj_data=np.load(path_adj)
     adj_idx=adj_data['idx']
     data=ptr['data'][idx,:,0]
@@ -853,7 +839,7 @@ def get_nhop_subgraph(adj_matrix, nodes,n_hop):
     subgraph_adj_matrix = adj_matrix[visited][:, visited]
     return subgraph_adj_matrix
 def process_adj(args):
-    adj=np.load(args.graph_path)
+    adj=np.load(args.adj_path)
     size=adj.shape[0]
     elements_to_remove=[]
     lst = list(range(1, size)) 
@@ -885,8 +871,8 @@ def get_n_hop_subgraph2(adj_matrix, nodes, n):
 def online_select_data(args,month_old,month_new):
 
     node_list = list()
-    old_adj=np.load(osp.join(args.graph_path, str(month_old)+"_ouradj.npy"))
-    new_adj=np.load(osp.join(args.graph_path, str(month_new)+"_ouradj.npy"))
+    old_adj=np.load(osp.join(args.adj_path, str(month_old)+"_ouradj.npy"))
+    new_adj=np.load(osp.join(args.adj_path, str(month_new)+"_ouradj.npy"))
     
     old_node_size = old_adj.shape[0]
     new_node_size = new_adj.shape[0]
@@ -928,7 +914,7 @@ def get_feature(data, graph, args, model, adj):
 
 def get_adj(month, args):
     month=int(month)
-    adj = np.load(osp.join(args.graph_path, str(month)+"_adj.npz"))["adj"]
+    adj = np.load(osp.join(args.adj_path, str(month)+"_adj.npz"))["adj"]
     adj_mx = normalize_adj_mx(adj, args.adj_type)
     supports = [torch.tensor(i) for i in adj_mx]
     return supports
