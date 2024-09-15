@@ -3,7 +3,7 @@
     "model_path": "res/model_record/",
     "adj_path":"data/adj/",
     "save_data_path":"model",
-    "all_datapath":"data/original/1402_our_his.npz",
+    "all_datapath":"data/his_data.npz",
     "logname": "DLF",
     "begin_month":4,
     "end_month":12,
